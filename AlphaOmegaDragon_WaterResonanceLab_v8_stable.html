@@ -1,0 +1,1987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AlphaΩDragon: Water Resonance Lab v8 Stable</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: rgba(9, 18, 34, 0.96);
+      --panel2: rgba(20, 34, 60, 0.82);
+      --text: #e9f3ff;
+      --muted: #9fb3cf;
+      --border: #2b4267;
+      --oxygen: #8fb3ff;
+      --hydrogen: #f4f7ff;
+      --field: #63d4ff;
+      --warn: #ffbd73;
+      --bad: #ff7f8f;
+      --good: #8ff0bf;
+      --gold: #ffe08a;
+      --bee: #ffd45c;
+      --bee2: #2b1a05;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      color: var(--text);
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(45, 102, 170, 0.32), transparent 42%),
+        radial-gradient(circle at 50% 50%, rgba(18, 80, 120, 0.18), transparent 48%),
+        var(--bg);
+    }
+
+    body {
+      display: grid;
+      grid-template-columns: 310px 1fr 310px;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: var(--panel);
+      padding: 14px;
+      overflow-y: auto;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.22);
+    }
+
+    .sidebar.left { border-right: 1px solid var(--border); }
+    .sidebar.right { border-left: 1px solid var(--border); }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(28, 50, 84, 0.72), rgba(13, 25, 47, 0.78));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.18);
+    }
+
+    .panel h1 {
+      margin: 0 0 6px 0;
+      font-size: 20px;
+      letter-spacing: 0.01em;
+    }
+
+    .panel h2 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      letter-spacing: 0.03em;
+    }
+
+    .subtitle, .note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .control-group { display: grid; gap: 10px; }
+    .control { display: grid; gap: 6px; }
+
+    .control label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    input[type="range"], select { width: 100%; }
+
+    select, button {
+      width: 100%;
+      background: rgba(22, 38, 70, 0.95);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+
+    button {
+      cursor: pointer;
+      transition: background 0.12s ease, transform 0.12s ease;
+    }
+
+    button:hover {
+      background: rgba(35, 60, 104, 0.98);
+      transform: translateY(-1px);
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .main {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-width: 0;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8, 17, 32, 0.76);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .topbar strong { font-size: 14px; }
+
+    .canvas-wrap {
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background:
+        radial-gradient(circle at center, rgba(60, 160, 210, 0.12), transparent 36%),
+        radial-gradient(circle at bottom, rgba(10, 30, 55, 0.74), rgba(3, 8, 18, 0.98));
+    }
+
+    .overlay {
+      position: absolute;
+      left: 16px;
+      top: 16px;
+      max-width: 330px;
+      background: rgba(5, 12, 26, 0.74);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      backdrop-filter: blur(7px);
+      pointer-events: none;
+    }
+
+    .overlay h3 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+    }
+
+    .overlay p {
+      margin: 5px 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .mode-banner {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      width: 310px;
+      background: rgba(5, 12, 26, 0.78);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      backdrop-filter: blur(7px);
+      pointer-events: none;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+    }
+
+    .mode-banner .title {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .mode-banner .mode {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .mode-banner .desc, .mode-banner .subline {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.42;
+      margin-bottom: 5px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .stat {
+      min-height: 64px;
+      background: rgba(5, 12, 26, 0.52);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .value {
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .challenge-card {
+      background: rgba(5, 12, 26, 0.48);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 8px;
+    }
+
+    .progress-shell {
+      height: 10px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(99,212,255,0.85), rgba(255,224,138,0.95));
+      border-radius: 999px;
+      transition: width 0.18s ease;
+    }
+
+    .tiny-list {
+      margin: 8px 0 0 0;
+      padding-left: 16px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .pill {
+      display: inline-block;
+      width: fit-content;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      margin: 0 6px 6px 0;
+    }
+
+    .good { color: var(--good); }
+    .warn { color: var(--warn); }
+    .bad { color: var(--bad); }
+    .gold { color: var(--gold); }
+
+
+
+    body.blind-mode #readoutPanel .stats {
+      display: none;
+    }
+
+    body.blind-mode #readoutPanel .blind-message {
+      display: block;
+    }
+
+    .blind-message {
+      display: none;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+      background: rgba(5, 12, 26, 0.48);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .water-note {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 1120px) {
+      body { grid-template-columns: 280px 1fr 280px; }
+    }
+
+    @media (max-width: 980px) {
+      html, body { overflow: auto; }
+      body {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr;
+      }
+      .sidebar.left, .sidebar.right {
+        border: 0;
+        border-bottom: 1px solid var(--border);
+        max-height: 38vh;
+      }
+      .main { min-height: 68vh; }
+      .overlay {
+        left: 12px;
+        right: 12px;
+        max-width: none;
+      }
+      .mode-banner {
+        left: 12px;
+        right: 12px;
+        top: auto;
+        bottom: 12px;
+        width: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar left">
+    <div class="panel">
+      <h1>AlphaΩDragon: Water Resonance Lab v8 💧</h1>
+      <div class="subtitle">
+        A water-first resonance sandbox for exploring how H₂O, D₂O, and T₂O respond to disturbance. Pause, adjust, release, and watch structure settle through angle, mass, damping, and field ripples. Riley Bee is now a classroom-aid skin only.<br><br><strong>Every molecule finds balance differently.</strong>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Water Structure Controls</h2>
+      <div class="control-group">
+        <select id="viewMode" style="display:none">
+          <option value="hybrid" selected>Hybrid Field</option>
+        </select>
+
+        <div class="control">
+          <label><span>Lab Mission</span><span id="missionLabel">Molecular Geometry</span></label>
+          <select id="missionMode">
+            <option value="angle">Molecular Geometry</option>
+            <option value="blind">Blind Stabilization Challenge</option>
+            <option value="drop">Surface / Droplet Response</option>
+            <option value="heavy">Isotopic Resonance Lab</option>
+          </select>
+        </div>
+
+        <div class="control">
+          <label><span>Isotope Mass Mode</span><span id="isotopeLabel">H₂O</span></label>
+          <select id="isotopeMode">
+            <option value="H">Hydrogen Water (H₂O)</option>
+            <option value="D">Heavy Water (D₂O)</option>
+            <option value="T">Tritium Water (T₂O)</option>
+          </select>
+        </div>
+
+        <div class="control">
+          <label><span>Temperature</span><span id="temperatureValue">0.38</span></label>
+          <input id="temperature" type="range" min="0" max="1" step="0.01" value="0.38" />
+        </div>
+
+        <div class="control">
+          <label><span>Field Cohesion</span><span id="cohesionValue">0.58</span></label>
+          <input id="cohesion" type="range" min="0" max="1" step="0.01" value="0.58" />
+        </div>
+
+        <div class="control">
+          <label><span>Field Particles</span><span id="swarmValue">18</span></label>
+          <input id="swarmCount" type="range" min="0" max="42" step="1" value="18" />
+        </div>
+
+        <div class="control">
+          <label><span>Bond Strength</span><span id="bondStrengthValue">0.090</span></label>
+          <input id="bondStrength" type="range" min="0.01" max="0.22" step="0.001" value="0.09" />
+        </div>
+
+        <div class="control">
+          <label><span>Angle Constraint</span><span id="angleStrengthValue">0.055</span></label>
+          <input id="angleStrength" type="range" min="0" max="0.16" step="0.001" value="0.055" />
+        </div>
+
+        <div class="control">
+          <label><span>H-H Repulsion</span><span id="hhRepulsionValue">0.55</span></label>
+          <input id="hhRepulsion" type="range" min="0" max="1.6" step="0.01" value="0.55" />
+        </div>
+
+        <div class="control">
+          <label><span>Field Damping</span><span id="dampingValue">0.982</span></label>
+          <input id="damping" type="range" min="0.92" max="0.998" step="0.001" value="0.982" />
+        </div>
+
+        <div class="control">
+          <label><span>Thermal Motion</span><span id="thermalValue">0.015</span></label>
+          <input id="thermal" type="range" min="0" max="0.12" step="0.001" value="0.015" />
+        </div>
+
+        <div class="control">
+          <label><span>Time Step</span><span id="dtValue">0.55</span></label>
+          <input id="dt" type="range" min="0.1" max="1.2" step="0.01" value="0.55" />
+        </div>
+
+        <div class="control">
+          <label><span>Riley Bee Classroom Aid</span><span id="beeModeLabel">Off</span></label>
+          <select id="beeMode">
+            <option value="off" selected>Off</option>
+            <option value="on">On</option>
+          </select>
+        </div>
+
+        <div class="control">
+          <label><span>Relaxation Trails</span><span id="wingTrailValue">0.65</span></label>
+          <input id="wingTrail" type="range" min="0" max="1" step="0.01" value="0.65" />
+        </div>
+
+        <div class="control" style="display:none">
+          <label><span>Wind Field</span><span id="windValue">0.00</span></label>
+          <input id="wind" type="range" min="-1" max="1" step="0.01" value="0" />
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Geometry / Learning Targets</h2>
+      <div class="control-group">
+        <div class="control">
+          <label><span>Target Angle</span><span id="targetAngleValue">104.5°</span></label>
+          <input id="targetAngle" type="range" min="90" max="118" step="0.1" value="104.5" />
+        </div>
+
+        <div class="control">
+          <label><span>Bond Length</span><span id="bondLengthValue">115</span></label>
+          <input id="bondLength" type="range" min="70" max="180" step="1" value="115" />
+        </div>
+
+        <div class="control">
+          <label><span>Oxygen Mass</span><span id="oxygenMassValue">16</span></label>
+          <input id="oxygenMass" type="range" min="8" max="32" step="1" value="16" />
+        </div>
+
+        <div class="control">
+          <label><span>Hydrogen Mass</span><span id="hydrogenMassValue">1</span></label>
+          <input id="hydrogenMass" type="range" min="0.5" max="4" step="0.1" value="1" />
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Actions</h2>
+      <div class="button-row">
+        <button id="resetBtn">Reset</button>
+        <button id="pauseBtn">Pause / Inspect</button>
+        <button id="coolBtn">Calm Field</button>
+        <button id="blindBtn">Blind Challenge</button>
+        <button id="inspectBtn">Inspect Lock</button>
+        <button id="beeToggleBtn">Toggle Riley Bee</button>
+      </div>
+      <button id="perturbBtn" style="display:none">Boop Riley</button>
+      <button id="spinBtn" style="display:none">Spin Test</button>
+      <button id="flightBtn" style="display:none">Flight School</button>
+      <div class="note" style="margin-top: 8px;">
+        Pause/Tune freezes the molecule so students can adjust angle or parameters, then Run Test reveals whether the system settles or destabilizes. Blind Challenge hides the numbers first, then lets the class reveal the measurements.
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div><strong>Goal:</strong> explore water structure as a resonance problem — disturb it, tune it, and compare H₂O, D₂O, and T₂O settling behavior.</div>
+      <div class="subtitle">Physics-first lab. Riley Bee is optional for classroom storytelling; the molecule is the default.</div>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="labCanvas"></canvas>
+      <div class="overlay">
+        <h3>How to explore</h3>
+        <p><strong>Drag the molecule:</strong> pull a node and watch bond, angle, and dipole constraints restore structure.</p>
+        <p><strong>Pause → adjust → release:</strong> create your own disturbance, then watch the field settle or ring.</p>
+        <p><strong>Learn:</strong> color, ripple speed, lock time, and wobble show how isotope mass changes response without changing the basic molecule shape.</p>
+      </div>
+      <div class="mode-banner">
+        <div class="title">Water State</div>
+        <div class="mode" id="fieldMode">Initializing</div>
+        <div class="desc" id="fieldDesc">Relaxing geometry.</div>
+        <div class="subline" id="fieldSubline">Angle: -- | Lock: --</div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="sidebar right">
+    <div class="panel" id="readoutPanel">
+      <h2>Measured Readouts</h2>
+      <div class="blind-message"><strong>Blind Challenge active.</strong><br>Stabilize the molecule by eye first. Press “Reveal Measurements” to show angle, wobble, resonance, and lock data.</div>
+      <div class="stats">
+        <div class="stat"><div class="label">H-O-H Angle</div><div class="value" id="angleReadout">--</div></div>
+        <div class="stat"><div class="label">Angle Error</div><div class="value" id="angleErrorReadout">--</div></div>
+        <div class="stat"><div class="label">Bond Balance</div><div class="value" id="bondReadout">--</div></div>
+        <div class="stat"><div class="label">Dipole Strength</div><div class="value" id="dipoleReadout">--</div></div>
+        <div class="stat"><div class="label">Torque</div><div class="value" id="torqueReadout">--</div></div>
+        <div class="stat"><div class="label">Angular Velocity</div><div class="value" id="omegaReadout">--</div></div>
+        <div class="stat"><div class="label">Wobble</div><div class="value" id="wobbleReadout">--</div></div>
+        <div class="stat"><div class="label">Stability Score</div><div class="value" id="stabilityReadout">--</div></div>
+        <div class="stat"><div class="label">Water Lock Timer</div><div class="value" id="lockTimerReadout">0.0 s</div></div>
+        <div class="stat"><div class="label">Best Lock</div><div class="value" id="bestLockReadout">0.0 s</div></div>
+        <div class="stat"><div class="label">Resonance Response</div><div class="value" id="flapReadout">--</div></div>
+        <div class="stat"><div class="label">Challenge Score</div><div class="value" id="funReadout">--</div></div>
+        <div class="stat"><div class="label">Isotope Mode</div><div class="value" id="isotopeReadout">H₂O</div></div>
+        <div class="stat"><div class="label">Mass Dynamics</div><div class="value" id="massDynamicsReadout">1.00×</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Lab Challenge</h2>
+      <div class="challenge-card">
+        <div class="label" id="missionTitle">Find the Water Angle</div>
+        <div class="value" id="missionScore">0%</div>
+        <div class="progress-shell"><div class="progress-fill" id="missionProgress"></div></div>
+        <ul class="tiny-list" id="missionTips">
+          <li>Disturb the molecule, then let it settle.</li>
+          <li>Use your eyes first, then reveal the measurements.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Status</h2>
+      <div class="pill" id="lockPill">Water Lock: scanning</div>
+      <div class="pill" id="twistPill">Twist: quiet</div>
+      <div class="pill" id="fieldPill">Field: relaxing</div>
+      <div class="note">
+        The model uses mass nodes, bond-length springs, angle relaxation, H-H repulsion, damping, thermal motion, and isotope mass presets. Same geometry target; different isotope mass changes how the field responds.
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Visual Guides</h2>
+      <div class="note">
+        <strong>Central node:</strong> oxygen-like mass center.<br>
+        <strong>Outer nodes:</strong> hydrogen/deuterium/tritium-like mass centers.<br>
+        <strong>Resonance field:</strong> ripple response from disturbance and isotope mass.<br>
+        <strong>Gold arrow:</strong> dipole direction.<br>
+        <strong>Ghost arms:</strong> ideal tetrahedral reference directions.<br>
+        <strong>Twist ring:</strong> torque and wobble response.<br>
+        <strong>Trails:</strong> recent relaxation path after drag or field disturbance.
+      </div>
+    </div>
+  </aside>
+
+  <script>
+    const canvas = document.getElementById('labCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const controls = {
+      viewMode: document.getElementById('viewMode'),
+      missionMode: document.getElementById('missionMode'),
+      isotopeMode: document.getElementById('isotopeMode'),
+      temperature: document.getElementById('temperature'),
+      cohesion: document.getElementById('cohesion'),
+      swarmCount: document.getElementById('swarmCount'),
+      bondStrength: document.getElementById('bondStrength'),
+      angleStrength: document.getElementById('angleStrength'),
+      hhRepulsion: document.getElementById('hhRepulsion'),
+      damping: document.getElementById('damping'),
+      thermal: document.getElementById('thermal'),
+      dt: document.getElementById('dt'),
+      targetAngle: document.getElementById('targetAngle'),
+      bondLength: document.getElementById('bondLength'),
+      oxygenMass: document.getElementById('oxygenMass'),
+      hydrogenMass: document.getElementById('hydrogenMass'),
+      resetBtn: document.getElementById('resetBtn'),
+      pauseBtn: document.getElementById('pauseBtn'),
+      perturbBtn: document.getElementById('perturbBtn'),
+      coolBtn: document.getElementById('coolBtn'),
+      inspectBtn: document.getElementById('inspectBtn'),
+      spinBtn: document.getElementById('spinBtn'),
+      flightBtn: document.getElementById('flightBtn'),
+      beeToggleBtn: document.getElementById('beeToggleBtn'),
+      blindBtn: document.getElementById('blindBtn'),
+      beeMode: document.getElementById('beeMode'),
+      wingTrail: document.getElementById('wingTrail'),
+      wind: document.getElementById('wind')
+    };
+
+    const labels = {
+      view: document.getElementById('viewLabel'),
+      mission: document.getElementById('missionLabel'),
+      isotope: document.getElementById('isotopeLabel'),
+      temperature: document.getElementById('temperatureValue'),
+      cohesion: document.getElementById('cohesionValue'),
+      swarm: document.getElementById('swarmValue'),
+      bondStrength: document.getElementById('bondStrengthValue'),
+      angleStrength: document.getElementById('angleStrengthValue'),
+      hhRepulsion: document.getElementById('hhRepulsionValue'),
+      damping: document.getElementById('dampingValue'),
+      thermal: document.getElementById('thermalValue'),
+      dt: document.getElementById('dtValue'),
+      targetAngle: document.getElementById('targetAngleValue'),
+      bondLength: document.getElementById('bondLengthValue'),
+      oxygenMass: document.getElementById('oxygenMassValue'),
+      hydrogenMass: document.getElementById('hydrogenMassValue'),
+      beeMode: document.getElementById('beeModeLabel'),
+      wingTrail: document.getElementById('wingTrailValue'),
+      wind: document.getElementById('windValue')
+    };
+
+    const readouts = {
+      angle: document.getElementById('angleReadout'),
+      angleError: document.getElementById('angleErrorReadout'),
+      bond: document.getElementById('bondReadout'),
+      dipole: document.getElementById('dipoleReadout'),
+      torque: document.getElementById('torqueReadout'),
+      omega: document.getElementById('omegaReadout'),
+      wobble: document.getElementById('wobbleReadout'),
+      stability: document.getElementById('stabilityReadout'),
+      lockTimer: document.getElementById('lockTimerReadout'),
+      bestLock: document.getElementById('bestLockReadout'),
+      flap: document.getElementById('flapReadout'),
+      fun: document.getElementById('funReadout'),
+      isotope: document.getElementById('isotopeReadout'),
+      massDynamics: document.getElementById('massDynamicsReadout'),
+      missionTitle: document.getElementById('missionTitle'),
+      missionScore: document.getElementById('missionScore'),
+      missionProgress: document.getElementById('missionProgress'),
+      missionTips: document.getElementById('missionTips'),
+      lockPill: document.getElementById('lockPill'),
+      twistPill: document.getElementById('twistPill'),
+      fieldPill: document.getElementById('fieldPill'),
+      fieldMode: document.getElementById('fieldMode'),
+      fieldDesc: document.getElementById('fieldDesc'),
+      fieldSubline: document.getElementById('fieldSubline')
+    };
+
+    let width = 0;
+    let height = 0;
+    let paused = false;
+    let nodes = [];
+    let lockTimer = 0;
+    let bestLock = 0;
+    let fieldPulse = 0;
+    let prevDipoleAngle = 0;
+    let angularVelocity = 0;
+    let lastTorque = 0;
+    let inspectMode = false;
+    let draggingNode = null;
+    let wingTrails = [[], []];
+    let funScore = 0;
+    let swarm = [];
+    let dropPhase = 0;
+    let flightWon = false;
+    let rescueFlash = 0;
+    const keys = { up: false, left: false, right: false, stabilize: false };
+    let stabilizePulse = 0;
+    let blindMode = false;
+
+    const ISOTOPE_CONFIG = {
+      H: { label: 'H₂O', mass: 1.0, dampingBoost: -0.004, thermalScale: 1.12, wobbleScale: 1.18, name: 'Hydrogen Water', color: 'rgba(170,235,255,0.94)', accent: 'rgba(72,202,255,0.72)', ripple: 'rgba(72,202,255,' },
+      D: { label: 'D₂O', mass: 2.0, dampingBoost: 0.006, thermalScale: 0.68, wobbleScale: 0.68, name: 'Heavy Water', color: 'rgba(165,150,255,0.95)', accent: 'rgba(126,112,255,0.74)', ripple: 'rgba(126,112,255,' },
+      T: { label: 'T₂O', mass: 3.0, dampingBoost: 0.012, thermalScale: 0.46, wobbleScale: 0.48, name: 'Tritium Water', color: 'rgba(255,194,104,0.95)', accent: 'rgba(255,135,84,0.76)', ripple: 'rgba(255,135,84,' }
+    };
+
+    function getIsotopeConfig() {
+      return ISOTOPE_CONFIG[controls.isotopeMode.value] || ISOTOPE_CONFIG.H;
+    }
+
+    function resize() {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    function fmt(n, d = 2) { return Number(n).toFixed(d); }
+    function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+    function degToRad(d) { return d * Math.PI / 180; }
+    function radToDeg(r) { return r * 180 / Math.PI; }
+    function normAngle(a) {
+      while (a > Math.PI) a -= Math.PI * 2;
+      while (a < -Math.PI) a += Math.PI * 2;
+      return a;
+    }
+
+    function updateLabels() {
+      if (labels.view && controls.viewMode) labels.view.textContent = controls.viewMode.options[controls.viewMode.selectedIndex].text;
+      labels.mission.textContent = controls.missionMode.options[controls.missionMode.selectedIndex].text;
+      labels.isotope.textContent = getIsotopeConfig().label;
+      labels.temperature.textContent = fmt(controls.temperature.value, 2);
+      labels.cohesion.textContent = fmt(controls.cohesion.value, 2);
+      labels.swarm.textContent = controls.swarmCount.value;
+      labels.bondStrength.textContent = fmt(controls.bondStrength.value, 3);
+      labels.angleStrength.textContent = fmt(controls.angleStrength.value, 3);
+      labels.hhRepulsion.textContent = fmt(controls.hhRepulsion.value, 2);
+      labels.damping.textContent = fmt(controls.damping.value, 3);
+      labels.thermal.textContent = fmt(controls.thermal.value, 3);
+      labels.dt.textContent = fmt(controls.dt.value, 2);
+      labels.targetAngle.textContent = `${fmt(controls.targetAngle.value, 1)}°`;
+      labels.bondLength.textContent = controls.bondLength.value;
+      labels.oxygenMass.textContent = controls.oxygenMass.value;
+      labels.hydrogenMass.textContent = controls.hydrogenMass.value;
+      labels.beeMode.textContent = controls.beeMode.value === 'on' ? 'On' : 'Off';
+      labels.wingTrail.textContent = fmt(controls.wingTrail.value, 2);
+      labels.wind.textContent = fmt(controls.wind.value, 2);
+    }
+
+    function getParams() {
+      return {
+        view: controls.viewMode ? controls.viewMode.value : 'hybrid',
+        mission: controls.missionMode.value,
+        isotope: controls.isotopeMode.value,
+        isotopeConfig: getIsotopeConfig(),
+        temperature: parseFloat(controls.temperature.value),
+        cohesion: parseFloat(controls.cohesion.value),
+        swarmCount: parseInt(controls.swarmCount.value, 10),
+        bondStrength: parseFloat(controls.bondStrength.value),
+        angleStrength: parseFloat(controls.angleStrength.value),
+        hhRepulsion: parseFloat(controls.hhRepulsion.value),
+        damping: parseFloat(controls.damping.value),
+        thermal: parseFloat(controls.thermal.value),
+        dt: parseFloat(controls.dt.value),
+        targetAngleDeg: parseFloat(controls.targetAngle.value),
+        targetAngle: degToRad(parseFloat(controls.targetAngle.value)),
+        bondLength: parseFloat(controls.bondLength.value),
+        oxygenMass: parseFloat(controls.oxygenMass.value),
+        hydrogenMass: parseFloat(controls.hydrogenMass.value),
+        beeMode: controls.beeMode.value === 'on',
+        wingTrail: parseFloat(controls.wingTrail.value),
+        wind: parseFloat(controls.wind.value)
+      };
+    }
+
+    function initSwarm(p) {
+      swarm = [];
+      const cx = width * 0.5;
+      const cy = height * 0.52;
+      const count = p.swarmCount;
+      for (let i = 0; i < count; i++) {
+        const ring = 52 + (i % 7) * 18 + Math.floor(i / 7) * 14;
+        const a = (i / Math.max(1, count)) * Math.PI * 2 + (i % 3) * 0.41;
+        swarm.push({
+          x: cx + Math.cos(a) * ring,
+          y: cy + Math.sin(a) * ring * 0.78,
+          vx: (Math.random() - 0.5) * 0.8,
+          vy: (Math.random() - 0.5) * 0.8,
+          phase: Math.random() * Math.PI * 2,
+          r: 4 + Math.random() * 2
+        });
+      }
+    }
+
+    function resetLab() {
+      resize();
+      if (!width || width < 80 || !height || height < 80) { width = window.innerWidth || 900; height = window.innerHeight || 600; }
+      updateLabels();
+      const p = getParams();
+      let cx = width * 0.5;
+      let cy = height * 0.52;
+      if (p.mission === 'flight') { cx = width * 0.24; cy = height * 0.56; }
+      const half = p.targetAngle / 2;
+      const baseDir = -Math.PI / 2;
+      const r = p.bondLength;
+
+      nodes = [
+        { name: 'O', x: cx, y: cy, vx: 0, vy: 0, m: p.oxygenMass, type: 'O' },
+        { name: 'H1', x: cx + Math.cos(baseDir - half) * r, y: cy + Math.sin(baseDir - half) * r, vx: 0, vy: 0, m: p.hydrogenMass, type: 'H' },
+        { name: 'H2', x: cx + Math.cos(baseDir + half) * r, y: cy + Math.sin(baseDir + half) * r, vx: 0, vy: 0, m: p.hydrogenMass, type: 'H' }
+      ];
+
+      lockTimer = 0;
+      bestLock = 0;
+      fieldPulse = 0;
+      wingTrails = [[], []];
+      draggingNode = null;
+      funScore = 0;
+      dropPhase = 0;
+      flightWon = false;
+      rescueFlash = 0;
+      keys.up = false; keys.left = false; keys.right = false; keys.stabilize = false;
+      stabilizePulse = 0;
+      initSwarm(p);
+      prevDipoleAngle = getDipoleAngle();
+      angularVelocity = 0;
+      lastTorque = 0;
+
+      if (paused) {
+        const metrics = computeMetrics();
+        const state = classify(metrics);
+        drawBackground(p);
+        drawField(metrics, p);
+        drawTetrahedralGhost(metrics, p);
+        drawDipole(metrics, p);
+        drawTwistRing(metrics);
+        drawNodes(metrics, p);
+        updateReadouts(metrics, state);
+      }
+    }
+
+    function perturb() {
+      for (const n of nodes) {
+        if (n.type === 'H') {
+          n.vx += (Math.random() - 0.5) * 5.0;
+          n.vy += (Math.random() - 0.5) * 5.0;
+        }
+      }
+      funScore += 3;
+    }
+
+    function spinTest() {
+      const O = nodes[0];
+      for (const n of nodes) {
+        const dx = n.x - O.x;
+        const dy = n.y - O.y;
+        const r = Math.hypot(dx, dy) || 1;
+        n.vx += -dy / r * 3.0;
+        n.vy += dx / r * 3.0;
+      }
+      funScore += 5;
+    }
+
+    function coolField() {
+      controls.thermal.value = Math.max(0, parseFloat(controls.thermal.value) * 0.35).toFixed(3);
+      controls.temperature.value = Math.max(0, parseFloat(controls.temperature.value) * 0.55).toFixed(2);
+      controls.damping.value = Math.min(0.996, parseFloat(controls.damping.value) + 0.008).toFixed(3);
+      updateLabels();
+    }
+
+    function distance(a, b) {
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    }
+
+    function unitFrom(a, b) {
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const r = Math.hypot(dx, dy) || 1;
+      return { x: dx / r, y: dy / r, r };
+    }
+
+    function getCOM() {
+      let mt = 0, sx = 0, sy = 0;
+      for (const n of nodes) {
+        mt += n.m;
+        sx += n.x * n.m;
+        sy += n.y * n.m;
+      }
+      return { x: sx / mt, y: sy / mt };
+    }
+
+    function getAngle() {
+      const O = nodes[0], H1 = nodes[1], H2 = nodes[2];
+      const a = unitFrom(O, H1);
+      const b = unitFrom(O, H2);
+      const dot = clamp(a.x * b.x + a.y * b.y, -1, 1);
+      return Math.acos(dot);
+    }
+
+    function getBisector() {
+      const O = nodes[0], H1 = nodes[1], H2 = nodes[2];
+      const a = unitFrom(O, H1);
+      const b = unitFrom(O, H2);
+      let x = a.x + b.x;
+      let y = a.y + b.y;
+      const r = Math.hypot(x, y) || 1;
+      return { x: x / r, y: y / r };
+    }
+
+    function getDipoleAngle() {
+      const v = getBisector();
+      return Math.atan2(v.y, v.x);
+    }
+
+    function applyForce(acc, i, fx, fy) {
+      acc[i].x += fx / nodes[i].m;
+      acc[i].y += fy / nodes[i].m;
+    }
+
+    function applyBond(acc, hIndex, p) {
+      const O = nodes[0];
+      const H = nodes[hIndex];
+      const u = unitFrom(O, H);
+      const stretch = u.r - p.bondLength;
+      const force = -p.bondStrength * stretch;
+      const fx = force * u.x;
+      const fy = force * u.y;
+      applyForce(acc, hIndex, fx, fy);
+      applyForce(acc, 0, -fx, -fy);
+    }
+
+    function applyHHRepulsion(acc, p) {
+      const H1 = nodes[1], H2 = nodes[2];
+      const u = unitFrom(H1, H2);
+      const target = 2 * p.bondLength * Math.sin(p.targetAngle / 2);
+      const compression = Math.max(0, target - u.r);
+      const force = p.hhRepulsion * compression * 0.015;
+      const fx = -force * u.x;
+      const fy = -force * u.y;
+      applyForce(acc, 1, fx, fy);
+      applyForce(acc, 2, -fx, -fy);
+    }
+
+    function rotatePointAround(px, py, cx, cy, angle) {
+      const dx = px - cx;
+      const dy = py - cy;
+      const c = Math.cos(angle);
+      const s = Math.sin(angle);
+      return { x: cx + dx * c - dy * s, y: cy + dx * s + dy * c };
+    }
+
+    function applyAngleConstraint(acc, p) {
+      const O = nodes[0];
+      const H1 = nodes[1];
+      const H2 = nodes[2];
+      const current = getAngle();
+      const error = current - p.targetAngle;
+      const correction = -error * p.angleStrength;
+
+      const r1 = distance(O, H1);
+      const r2 = distance(O, H2);
+      const move1 = rotatePointAround(H1.x, H1.y, O.x, O.y, correction * 0.5);
+      const move2 = rotatePointAround(H2.x, H2.y, O.x, O.y, -correction * 0.5);
+
+      applyForce(acc, 1, (move1.x - H1.x) * r1 * 0.018, (move1.y - H1.y) * r1 * 0.018);
+      applyForce(acc, 2, (move2.x - H2.x) * r2 * 0.018, (move2.y - H2.y) * r2 * 0.018);
+    }
+
+    function computeTorque() {
+      const com = getCOM();
+      let L = 0;
+      for (const n of nodes) {
+        const rx = n.x - com.x;
+        const ry = n.y - com.y;
+        L += n.m * (rx * n.vy - ry * n.vx);
+      }
+      return L;
+    }
+
+
+    function getNest() {
+      return { x: width * 0.84, y: height * 0.50, r: Math.max(42, Math.min(width, height) * 0.075) };
+    }
+
+    function applyFlightSchoolMotion(p) {
+      const nest = getNest();
+      const com = getCOM();
+      const angleError = Math.abs(radToDeg(getAngle()) - p.targetAngleDeg);
+      const angleLift = clamp(1 - angleError / 32, 0, 1);
+      const calmLift = clamp(1 - Math.abs(angularVelocity) * 1.65, 0, 1);
+      const wingBalance = clamp(1 - Math.abs(distance(nodes[0], nodes[1]) - distance(nodes[0], nodes[2])) / 50, 0, 1);
+      const lift = angleLift * 0.58 + calmLift * 0.24 + wingBalance * 0.18;
+
+      const dx = nest.x - com.x;
+      const dy = nest.y - com.y;
+      const d = Math.hypot(dx, dy) || 1;
+      const ux = dx / d;
+      const uy = dy / d;
+
+      // Autopilot teaches the science: stable geometry creates efficient flight.
+      const autoThrust = (0.16 + lift * 1.85) * p.dt;
+      let playerX = 0;
+      let playerY = 0;
+      if (keys.left) playerX -= 2.10 * p.dt;
+      if (keys.right) playerX += 2.10 * p.dt;
+      if (keys.up) playerY -= (1.05 + lift * 2.60) * p.dt;
+      if (keys.stabilize) stabilizePulse = Math.min(1, stabilizePulse + 0.08);
+      stabilizePulse *= 0.94;
+
+      // Space bar is Riley's little water-lock breath: it damps wobble and helps angle recovery.
+      if (stabilizePulse > 0.04) {
+        for (const n of nodes) {
+          n.vx *= (0.985 - stabilizePulse * 0.10);
+          n.vy *= (0.985 - stabilizePulse * 0.10);
+        }
+      }
+
+      const bob = Math.sin(fieldPulse * 3.0) * (1 - lift) * 0.95;
+      const turbulence = (1 - lift) * (0.45 + p.temperature * 1.15);
+      for (const n of nodes) {
+        n.x += ux * autoThrust + playerX;
+        n.y += uy * autoThrust + playerY + bob;
+        if (lift < 0.55) {
+          n.x += (Math.random() - 0.5) * turbulence;
+          n.y += (Math.random() - 0.5) * turbulence;
+        }
+      }
+
+      // Gentle screen-edge correction prevents the old runaway void problem.
+      const corrected = clampFlightBounds();
+      if (corrected) rescueFlash = Math.max(rescueFlash, 30);
+
+      if (d < nest.r * 0.72 && lift > 0.70) {
+        flightWon = true;
+        funScore += 0.08;
+        for (const n of nodes) { n.vx *= 0.84; n.vy *= 0.84; }
+      }
+    }
+
+    function clampFlightBounds() {
+      if (!nodes || nodes.length < 3 || width < 80 || height < 80) return false;
+      const com = getCOM();
+      const pad = 96;
+      const targetX = clamp(com.x, pad, width - pad);
+      const targetY = clamp(com.y, pad, height - pad);
+      const dx = targetX - com.x;
+      const dy = targetY - com.y;
+      if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) return false;
+      for (const n of nodes) {
+        n.x += dx; n.y += dy;
+        n.vx *= 0.45; n.vy *= 0.45;
+      }
+      return true;
+    }
+
+    function rescueIfLost() {
+      if (!nodes || nodes.length < 3) return true;
+      const margin = Math.max(width, height) * 3;
+      for (const n of nodes) {
+        if (!Number.isFinite(n.x) || !Number.isFinite(n.y) || Math.abs(n.x) > margin || Math.abs(n.y) > margin) {
+          rescueFlash = 90;
+          resetLab();
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function sandboxMoleculeBounds() {
+      // v8 safety sandbox: lets the molecule wobble beyond the visible area a little,
+      // but prevents Tritium/heavy settings from escaping into the void.
+      if (!nodes || nodes.length < 3 || width < 80 || height < 80) return;
+      const pad = 72;
+      let touched = false;
+      for (const n of nodes) {
+        const minX = -pad, maxX = width + pad;
+        const minY = -pad, maxY = height + pad;
+        if (n.x < minX) { n.x = minX; n.vx = Math.abs(n.vx) * 0.18; touched = true; }
+        if (n.x > maxX) { n.x = maxX; n.vx = -Math.abs(n.vx) * 0.18; touched = true; }
+        if (n.y < minY) { n.y = minY; n.vy = Math.abs(n.vy) * 0.18; touched = true; }
+        if (n.y > maxY) { n.y = maxY; n.vy = -Math.abs(n.vy) * 0.18; touched = true; }
+      }
+      const com = getCOM();
+      const targetX = clamp(com.x, pad, width - pad);
+      const targetY = clamp(com.y, pad, height - pad);
+      const dx = targetX - com.x;
+      const dy = targetY - com.y;
+      if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
+        for (const n of nodes) { n.x += dx; n.y += dy; n.vx *= 0.55; n.vy *= 0.55; }
+        touched = true;
+      }
+      const maxBond = Math.min(width, height) * 0.42;
+      if (distance(nodes[0], nodes[1]) > maxBond || distance(nodes[0], nodes[2]) > maxBond) {
+        resetLab();
+        return;
+      }
+      if (touched) rescueFlash = Math.max(rescueFlash, 20);
+    }
+
+    function step() {
+      const p = getParams();
+      const dt = p.dt;
+      const acc = nodes.map(() => ({ x: 0, y: 0 }));
+
+      applyBond(acc, 1, p);
+      applyBond(acc, 2, p);
+      applyHHRepulsion(acc, p);
+      applyAngleConstraint(acc, p);
+
+      const effectiveThermal = (p.thermal + p.temperature * 0.018) * p.isotopeConfig.thermalScale;
+      if (effectiveThermal > 0) {
+        for (let i = 1; i < nodes.length; i++) {
+          acc[i].x += (Math.random() - 0.5) * effectiveThermal;
+          acc[i].y += (Math.random() - 0.5) * effectiveThermal;
+        }
+      }
+
+      for (let i = 0; i < nodes.length; i++) {
+        if (p.wind !== 0) {
+          acc[i].x += p.wind * (nodes[i].type === 'O' ? 0.006 : 0.018);
+        }
+        const isotopeDamping = clamp(p.damping + p.isotopeConfig.dampingBoost, 0.90, 0.998);
+        nodes[i].vx = (nodes[i].vx + acc[i].x * dt) * isotopeDamping;
+        nodes[i].vy = (nodes[i].vy + acc[i].y * dt) * isotopeDamping;
+        nodes[i].x += nodes[i].vx * dt;
+        nodes[i].y += nodes[i].vy * dt;
+      }
+
+      if (p.mission === 'flight') {
+        applyFlightSchoolMotion(p);
+      } else {
+        const com = getCOM();
+        const targetX = width * 0.5;
+        const targetY = height * 0.52;
+        const dx = (targetX - com.x) * 0.006;
+        const dy = (targetY - com.y) * 0.006;
+        for (const n of nodes) {
+          n.x += dx;
+          n.y += dy;
+        }
+      }
+
+      rescueIfLost();
+      sandboxMoleculeBounds();
+
+      const dipoleAngle = getDipoleAngle();
+      angularVelocity = normAngle(dipoleAngle - prevDipoleAngle) / Math.max(dt, 0.001);
+      prevDipoleAngle = dipoleAngle;
+      lastTorque = computeTorque();
+
+      if (p.wingTrail > 0) {
+        for (let i = 1; i <= 2; i++) {
+          wingTrails[i - 1].push({ x: nodes[i].x, y: nodes[i].y });
+          const maxTrail = Math.round(12 + p.wingTrail * 60);
+          if (wingTrails[i - 1].length > maxTrail) wingTrails[i - 1].shift();
+        }
+      } else {
+        wingTrails = [[], []];
+      }
+
+      updateSwarm(p);
+    }
+
+    function updateSwarm(p) {
+      if (swarm.length !== p.swarmCount) initSwarm(p);
+      const O = nodes[0];
+      const targetR = 78 + (1 - p.cohesion) * 64 + p.temperature * 22;
+      const freeze = false; // v8: removed hex/freeze lattice visual; field particles stay resonance-focused.
+      dropPhase += 0.018 + p.temperature * 0.025;
+      for (let i = 0; i < swarm.length; i++) {
+        const m = swarm[i];
+        let tx, ty;
+        if (freeze) {
+          const cols = Math.ceil(Math.sqrt(Math.max(1, swarm.length)));
+          const q = (i % cols) - cols / 2;
+          const r = Math.floor(i / cols) - cols / 2;
+          const spacing = 24;
+          tx = O.x + spacing * Math.sqrt(3) * (q + r / 2);
+          ty = O.y + spacing * 1.5 * r;
+        } else {
+          const a = (i / Math.max(1, swarm.length)) * Math.PI * 2 + Math.sin(dropPhase + m.phase) * 0.07;
+          const wob = Math.sin(dropPhase * 1.7 + m.phase) * (10 + p.temperature * 18);
+          tx = O.x + Math.cos(a) * (targetR + wob);
+          ty = O.y + Math.sin(a) * (targetR * 0.82 + wob * 0.4);
+        }
+        m.vx = (m.vx + (tx - m.x) * (0.002 + p.cohesion * 0.010)) * (0.90 - p.temperature * 0.05);
+        m.vy = (m.vy + (ty - m.y) * (0.002 + p.cohesion * 0.010)) * (0.90 - p.temperature * 0.05);
+        m.x += m.vx * p.dt;
+        m.y += m.vy * p.dt;
+      }
+    }
+
+    function computeMetrics() {
+      const p = getParams();
+      const angle = getAngle();
+      const angleDeg = radToDeg(angle);
+      const angleError = Math.abs(angleDeg - p.targetAngleDeg);
+      const OH1 = distance(nodes[0], nodes[1]);
+      const OH2 = distance(nodes[0], nodes[2]);
+      const bondError = (Math.abs(OH1 - p.bondLength) + Math.abs(OH2 - p.bondLength)) / 2;
+      const bondBalance = Math.abs(OH1 - OH2);
+      const bisector = getBisector();
+      const dipoleStrength = distance(nodes[1], nodes[2]) / Math.max(p.bondLength, 1);
+      const wobble = (Math.abs(angularVelocity) * 60 + Math.abs(lastTorque) * 0.0008 + angleError * 0.25) * p.isotopeConfig.wobbleScale;
+      const angleScore = clamp(100 - angleError * 8, 0, 100);
+      const bondScore = clamp(100 - bondError * 2.6 - bondBalance * 3.2, 0, 100);
+      const wobbleScore = clamp(100 - wobble * 7.5, 0, 100);
+      const stability = clamp(angleScore * 0.42 + bondScore * 0.38 + wobbleScore * 0.20, 0, 100);
+      const flap = Math.abs(OH1 - OH2) + Math.abs(angularVelocity) * 22 + Math.max(0, wobble - 1) * 0.55;
+      const locked = stability >= 84 && angleError <= 2.5 && bondError <= 8.0 && Math.abs(angularVelocity) < 0.20;
+      const dropRoundness = computeDropRoundness();
+      const freezeOrder = computeFreezeOrder();
+      const flightScore = computeFlightScore(stability, angleError);
+      const resonanceResponse = clamp((wobble * 7.5) + (100 - stability) * 0.35 + p.temperature * 18, 0, 100);
+
+      if (locked && !paused) {
+        lockTimer += p.dt;
+        bestLock = Math.max(bestLock, lockTimer);
+      } else if (!locked && !paused) {
+        lockTimer = 0;
+      }
+
+      return {
+        angle,
+        angleDeg,
+        angleError,
+        OH1,
+        OH2,
+        bondError,
+        bondBalance,
+        bisector,
+        dipoleStrength,
+        torque: lastTorque,
+        angularVelocity,
+        wobble,
+        stability,
+        locked,
+        flap,
+        dropRoundness,
+        freezeOrder,
+        flightScore,
+        resonanceResponse
+      };
+    }
+
+
+    function computeFlightScore(stability, angleError) {
+      const p = getParams();
+      if (p.mission !== 'flight') return 0;
+      const nest = getNest();
+      const com = getCOM();
+      const d = Math.hypot(com.x - nest.x, com.y - nest.y);
+      const distanceScore = clamp(100 - d / Math.max(width * 0.006, 1), 0, 100);
+      const angleScore = clamp(100 - angleError * 5, 0, 100);
+      return clamp(distanceScore * 0.45 + stability * 0.35 + angleScore * 0.20 + (flightWon ? 18 : 0), 0, 100);
+    }
+
+    function computeDropRoundness() {
+      if (swarm.length < 4) return 0;
+      const O = nodes[0];
+      const ds = swarm.map(m => Math.hypot(m.x - O.x, m.y - O.y));
+      const mean = ds.reduce((a,b)=>a+b,0) / ds.length;
+      const variance = ds.reduce((a,b)=>a+(b-mean)*(b-mean),0) / ds.length;
+      const score = 100 - Math.sqrt(variance) * 2.2;
+      return clamp(score, 0, 100);
+    }
+
+    function computeFreezeOrder() {
+      if (swarm.length < 4) return 0;
+      let aligned = 0;
+      for (let i = 0; i < swarm.length; i++) {
+        let local = 0;
+        for (let j = 0; j < swarm.length; j++) {
+          if (i === j) continue;
+          const d = Math.hypot(swarm[i].x - swarm[j].x, swarm[i].y - swarm[j].y);
+          if (d > 18 && d < 34) local++;
+        }
+        aligned += Math.min(local, 6) / 6;
+      }
+      return clamp((aligned / swarm.length) * 100, 0, 100);
+    }
+
+    function classify(metrics) {
+      const p = getParams();
+      if (p.mission === 'flight' && flightWon) {
+        return { mode: 'Resonance Landing!', desc: 'Riley reached the safety nest by staying close to stable water geometry.', cls: 'good' };
+      }
+      if (metrics.locked && lockTimer > 4) {
+        return {
+          mode: 'Water Lock',
+          desc: 'Bent geometry is holding near the target angle with balanced bonds and low wobble.',
+          cls: 'good'
+        };
+      }
+      if (metrics.stability > 76) {
+        return {
+          mode: 'Riley Is Finding Balance',
+          desc: 'The field is close to a stable bent geometry but still correcting motion.',
+          cls: 'good'
+        };
+      }
+      if (metrics.angleDeg > 116) {
+        return {
+          mode: 'Linear Stress',
+          desc: 'Hydrogen nodes are opening toward a strained, less water-like geometry.',
+          cls: 'warn'
+        };
+      }
+      if (metrics.angleDeg < 94) {
+        return {
+          mode: 'Compressed Bend',
+          desc: 'Hydrogen nodes are squeezed too close together; repulsion and angle constraints are fighting.',
+          cls: 'warn'
+        };
+      }
+      if (metrics.wobble > 8) {
+        return {
+          mode: 'Chaotic Thermal Motion',
+          desc: 'Thermal motion or perturbation is overwhelming the restoring geometry.',
+          cls: 'bad'
+        };
+      }
+      return {
+        mode: 'Field Relaxation',
+        desc: 'The molecule-like structure is searching for a stable bent configuration.',
+        cls: 'warn'
+      };
+    }
+
+    function drawBackground(p) {
+      ctx.clearRect(0, 0, width, height);
+      if (p.view === 'geometry') return;
+
+      const cx = width * 0.5;
+      const cy = height * 0.52;
+      ctx.save();
+      ctx.strokeStyle = 'rgba(99, 212, 255, 0.055)';
+      ctx.lineWidth = 1;
+      for (let r = 70; r < Math.max(width, height); r += 70) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      for (let a = 0; a < Math.PI * 2; a += Math.PI / 12) {
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(a) * width, cy + Math.sin(a) * width);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawField(metrics, p) {
+      if (p.view === 'geometry') return;
+      const O = nodes[0], H1 = nodes[1], H2 = nodes[2];
+      fieldPulse += 0.035;
+      const pulse = (Math.sin(fieldPulse) + 1) * 0.5;
+
+      ctx.save();
+      const gradient = ctx.createRadialGradient(O.x, O.y, 8, O.x, O.y, p.bondLength * 1.65);
+      gradient.addColorStop(0, 'rgba(143,179,255,0.24)');
+      gradient.addColorStop(0.45, 'rgba(99,212,255,0.10)');
+      gradient.addColorStop(1, 'rgba(99,212,255,0.00)');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(O.x, O.y, p.bondLength * 1.7, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = `rgba(99,212,255,${0.12 + pulse * 0.08})`;
+      ctx.lineWidth = 2;
+      drawCurvedBond(O, H1, -0.22);
+      drawCurvedBond(O, H2, 0.22);
+      ctx.restore();
+    }
+
+    function drawCurvedBond(a, b, bend) {
+      const mx = (a.x + b.x) / 2;
+      const my = (a.y + b.y) / 2;
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const cx = mx - dy * bend;
+      const cy = my + dx * bend;
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.quadraticCurveTo(cx, cy, b.x, b.y);
+      ctx.stroke();
+    }
+
+
+    function drawResonance(metrics, p) {
+      // v8: hex/honeycomb visual removed from core lab. Resonance rings carry the teaching load.
+      return;
+    }
+
+    function drawHex(x, y, radius) {
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = Math.PI / 6 + i * Math.PI / 3;
+        const px = x + Math.cos(a) * radius;
+        const py = y + Math.sin(a) * radius;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.stroke();
+    }
+
+    function drawWingTrails(p) {
+      if (p.wingTrail <= 0) return;
+      const colors = ['rgba(255,212,92,', 'rgba(244,247,255,'];
+      ctx.save();
+      for (let t = 0; t < wingTrails.length; t++) {
+        const trail = wingTrails[t];
+        for (let i = 1; i < trail.length; i++) {
+          const a = i / trail.length;
+          ctx.strokeStyle = `${colors[t]}${a * p.wingTrail * 0.34})`;
+          ctx.lineWidth = 1.2 + a * 1.2;
+          ctx.beginPath();
+          ctx.moveTo(trail[i - 1].x, trail[i - 1].y);
+          ctx.lineTo(trail[i].x, trail[i].y);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+
+    function drawTetrahedralGhost(metrics, p) {
+      const O = nodes[0];
+      const bis = metrics.bisector;
+      const base = Math.atan2(bis.y, bis.x);
+      const ideal = degToRad(109.5) / 2;
+      const length = p.bondLength * 1.12;
+      const angles = [base - ideal, base + ideal, base + Math.PI - ideal, base + Math.PI + ideal];
+
+      ctx.save();
+      ctx.setLineDash([7, 7]);
+      ctx.strokeStyle = 'rgba(255,255,255,0.16)';
+      ctx.lineWidth = 1.2;
+      for (const a of angles) {
+        ctx.beginPath();
+        ctx.moveTo(O.x, O.y);
+        ctx.lineTo(O.x + Math.cos(a) * length, O.y + Math.sin(a) * length);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawDipole(metrics, p) {
+      const O = nodes[0];
+      const v = metrics.bisector;
+      const start = { x: O.x - v.x * p.bondLength * 0.28, y: O.y - v.y * p.bondLength * 0.28 };
+      const end = { x: O.x + v.x * p.bondLength * 1.05, y: O.y + v.y * p.bondLength * 1.05 };
+
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,224,138,0.88)';
+      ctx.fillStyle = 'rgba(255,224,138,0.88)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      ctx.stroke();
+      const ang = Math.atan2(end.y - start.y, end.x - start.x);
+      ctx.beginPath();
+      ctx.moveTo(end.x, end.y);
+      ctx.lineTo(end.x - Math.cos(ang - 0.42) * 12, end.y - Math.sin(ang - 0.42) * 12);
+      ctx.lineTo(end.x - Math.cos(ang + 0.42) * 12, end.y - Math.sin(ang + 0.42) * 12);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawTwistRing(metrics) {
+      const O = nodes[0];
+      const intensity = clamp(Math.abs(metrics.angularVelocity) * 2 + metrics.wobble / 12, 0, 1);
+      if (intensity < 0.04) return;
+      const r = 44 + intensity * 28;
+
+      ctx.save();
+      ctx.strokeStyle = `rgba(255,224,138,${0.12 + intensity * 0.28})`;
+      ctx.lineWidth = 1.4 + intensity * 1.6;
+      ctx.beginPath();
+      ctx.arc(O.x, O.y, r, Math.PI * 0.15, Math.PI * 1.72);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+
+
+    function drawFlightCourse(metrics, p) {
+      if (p.mission !== 'flight') return;
+      const nest = getNest();
+      const com = getCOM();
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,224,138,0.20)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([7, 9]);
+      ctx.beginPath();
+      ctx.moveTo(com.x, com.y);
+      ctx.quadraticCurveTo(width * 0.52, height * 0.28, nest.x, nest.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      const glow = flightWon ? 0.55 : 0.26 + metrics.flightScore / 420;
+      ctx.fillStyle = `rgba(255,212,92,${0.06 + glow * 0.18})`;
+      ctx.strokeStyle = `rgba(255,224,138,${0.35 + glow * 0.35})`;
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.arc(nest.x, nest.y, nest.r * 1.35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,212,92,0.48)';
+      for (let q = -2; q <= 2; q++) {
+        for (let r = -2; r <= 2; r++) {
+          const x = nest.x + 16 * Math.sqrt(3) * (q + r / 2);
+          const y = nest.y + 16 * 1.5 * r;
+          if (Math.hypot(x - nest.x, y - nest.y) < nest.r) drawHex(x, y, 7.5);
+        }
+      }
+      ctx.fillStyle = 'rgba(255,244,190,0.95)';
+      ctx.font = 'bold 13px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(flightWon ? 'SAFE!' : 'Resonance Target', nest.x, nest.y + nest.r * 1.65);
+      if (rescueFlash > 0) {
+        ctx.fillStyle = 'rgba(255,127,143,0.72)';
+        ctx.fillText('Rescue reset engaged', width * 0.5, 34);
+        rescueFlash -= 1;
+      }
+      ctx.restore();
+    }
+
+    function drawSwarm(metrics, p) {
+      if (swarm.length === 0) return;
+      const iso = p.isotopeConfig;
+      ctx.save();
+      if (p.mission === 'drop' || p.mission === 'heavy') drawDropSkin(metrics, p);
+      for (const m of swarm) {
+        const alpha = 0.28 + clamp(metrics.stability / 100, 0, 1) * 0.18;
+        ctx.fillStyle = `${iso.ripple}${alpha})`;
+        ctx.strokeStyle = 'rgba(244,247,255,0.18)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawDropSkin(metrics, p) {
+      if (swarm.length < 5) return;
+      const O = nodes[0];
+      const radius = 82 + (1 - p.cohesion) * 66 + p.temperature * 24;
+      ctx.save();
+      const grad = ctx.createRadialGradient(O.x - radius * 0.25, O.y - radius * 0.25, 8, O.x, O.y, radius * 1.2);
+      grad.addColorStop(0, 'rgba(255,255,255,0.16)');
+      grad.addColorStop(0.55, 'rgba(99,212,255,0.08)');
+      grad.addColorStop(1, 'rgba(99,212,255,0.00)');
+      ctx.fillStyle = grad;
+      ctx.strokeStyle = `rgba(99,212,255,${0.18 + p.cohesion * 0.28})`;
+      ctx.lineWidth = 2 + p.cohesion * 2;
+      ctx.beginPath();
+      for (let i = 0; i <= 72; i++) {
+        const a = i / 72 * Math.PI * 2;
+        const ripple = Math.sin(a * 5 + dropPhase * 2) * (1 - p.cohesion) * 8 + Math.sin(a * 3 - dropPhase) * p.temperature * 6;
+        const x = O.x + Math.cos(a) * (radius + ripple);
+        const y = O.y + Math.sin(a) * ((radius * 0.82) + ripple * 0.6);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.restore();
+    }
+
+
+    function drawIsotopeHalo(metrics, p) {
+      const O = nodes[0];
+      const iso = p.isotopeConfig;
+      const calm = clamp(metrics.stability / 100, 0, 1);
+      const radius = 38 + iso.mass * 10 + calm * 18;
+      ctx.save();
+      ctx.strokeStyle = iso.accent;
+      ctx.lineWidth = 1.4 + iso.mass * 0.35;
+      ctx.setLineDash([6, 10]);
+      ctx.beginPath();
+      ctx.arc(O.x, O.y, radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = iso.accent;
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${iso.label} · mass ${iso.mass.toFixed(1)}×`, O.x, O.y + radius + 18);
+      ctx.restore();
+    }
+
+
+    function drawResonanceField(metrics, p) {
+      if (p.view === 'geometry') return;
+      const O = nodes[0];
+      const iso = p.isotopeConfig;
+      const response = clamp(metrics.resonanceResponse / 100, 0.05, 1);
+      const calm = clamp(metrics.stability / 100, 0, 1);
+      const base = 36 + iso.mass * 8;
+      const spacing = 28 + iso.mass * 8;
+      const speed = 1.85 / iso.mass;
+
+      ctx.save();
+      ctx.lineCap = 'round';
+      for (let i = 0; i < 5; i++) {
+        const phase = fieldPulse * speed - i * 0.75;
+        const pulse = (Math.sin(phase) + 1) * 0.5;
+        const r = base + i * spacing + pulse * (10 + response * 18);
+        const alpha = (0.18 + response * 0.26) / (i + 1.05);
+        ctx.strokeStyle = `${iso.ripple}${alpha})`;
+        ctx.lineWidth = 0.9 + iso.mass * 0.45 + response * 1.2;
+        ctx.beginPath();
+        ctx.arc(O.x, O.y, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // A gentle standing-wave membrane: not a fluid solver, just a field response visual.
+      const waveR = base + spacing * 2.15;
+      ctx.strokeStyle = `${iso.ripple}${0.12 + response * 0.18})`;
+      ctx.lineWidth = 1.2 + iso.mass * 0.25;
+      ctx.beginPath();
+      for (let i = 0; i <= 120; i++) {
+        const a = (i / 120) * Math.PI * 2;
+        const ripple = Math.sin(a * 4 + fieldPulse * speed * 2.0) * response * (6 + iso.mass * 2);
+        const x = O.x + Math.cos(a) * (waveR + ripple);
+        const y = O.y + Math.sin(a) * ((waveR * 0.72) + ripple * 0.55);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.stroke();
+
+      if (calm > 0.84) {
+        ctx.fillStyle = `${iso.ripple}${0.05 + calm * 0.06})`;
+        ctx.beginPath();
+        ctx.arc(O.x, O.y, base + spacing * 0.75, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function drawNodes(metrics, p) {
+      const O = nodes[0], H1 = nodes[1], H2 = nodes[2];
+      drawIsotopeHalo(metrics, p);
+
+      ctx.save();
+      ctx.strokeStyle = metrics.locked ? 'rgba(143,240,191,0.62)' : 'rgba(255,255,255,0.30)';
+      ctx.lineWidth = metrics.locked ? 3 : 2;
+      ctx.beginPath();
+      ctx.moveTo(H1.x, H1.y);
+      ctx.lineTo(O.x, O.y);
+      ctx.lineTo(H2.x, H2.y);
+      ctx.stroke();
+      ctx.restore();
+
+      if (p.beeMode) {
+        drawBeeBody(O, H1, H2, metrics);
+      } else {
+        for (const n of nodes) {
+          const radius = n.type === 'O' ? 20 + Math.sqrt(n.m) * 1.5 : 11 + Math.sqrt(n.m) * 2.8;
+          ctx.save();
+          const fill = n.type === 'O' ? 'rgba(143,179,255,0.95)' : p.isotopeConfig.color;
+          const edge = n.type === 'O' ? 'rgba(99,212,255,0.95)' : p.isotopeConfig.accent;
+          const grad = ctx.createRadialGradient(n.x - radius * 0.25, n.y - radius * 0.25, radius * 0.1, n.x, n.y, radius * 1.5);
+          grad.addColorStop(0, '#ffffff');
+          grad.addColorStop(0.35, fill);
+          grad.addColorStop(1, 'rgba(20,40,80,0.18)');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = edge;
+          ctx.lineWidth = 1.6;
+          ctx.stroke();
+          ctx.fillStyle = n.type === 'O' ? '#07111f' : '#0b1020';
+          ctx.font = 'bold 12px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(n.name === 'O' ? 'O' : p.isotope, n.x, n.y);
+          ctx.restore();
+        }
+      }
+
+      if (inspectMode) drawInspector(metrics, p);
+    }
+
+    function drawBeeBody(O, H1, H2, metrics) {
+      ctx.save();
+      const bodyR = 24 + Math.sqrt(O.m) * 1.1;
+      const grad = ctx.createRadialGradient(O.x - 7, O.y - 7, 2, O.x, O.y, bodyR * 1.4);
+      grad.addColorStop(0, '#fff6c7');
+      grad.addColorStop(0.35, 'rgba(255,212,92,0.98)');
+      grad.addColorStop(1, 'rgba(80,50,8,0.45)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.ellipse(O.x, O.y, bodyR * 0.92, bodyR * 1.10, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,224,138,0.95)';
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(43,26,5,0.52)';
+      ctx.lineWidth = 3;
+      for (let s = -1; s <= 1; s++) {
+        ctx.beginPath();
+        ctx.moveTo(O.x - bodyR * 0.65, O.y + s * bodyR * 0.28);
+        ctx.quadraticCurveTo(O.x, O.y + s * bodyR * 0.18, O.x + bodyR * 0.65, O.y + s * bodyR * 0.28);
+        ctx.stroke();
+      }
+
+      drawWing(H1, O, metrics.flap);
+      drawWing(H2, O, metrics.flap);
+      ctx.restore();
+    }
+
+    function drawWing(H, O, flap) {
+      const dx = H.x - O.x;
+      const dy = H.y - O.y;
+      const a = Math.atan2(dy, dx);
+      const wingR = 13 + Math.min(12, flap * 0.9);
+      ctx.save();
+      ctx.translate(H.x, H.y);
+      ctx.rotate(a);
+      const grad = ctx.createRadialGradient(-4, -4, 2, 0, 0, wingR * 1.8);
+      grad.addColorStop(0, 'rgba(255,255,255,0.95)');
+      grad.addColorStop(0.45, 'rgba(244,247,255,0.42)');
+      grad.addColorStop(1, 'rgba(99,212,255,0.08)');
+      ctx.fillStyle = grad;
+      ctx.strokeStyle = 'rgba(244,247,255,0.76)';
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, wingR * 1.35, wingR * 0.78, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawInspector(metrics, p) {
+      const O = nodes[0];
+      ctx.save();
+      ctx.fillStyle = 'rgba(5,12,26,0.80)';
+      ctx.strokeStyle = 'rgba(255,224,138,0.55)';
+      ctx.lineWidth = 1;
+      const x = O.x + 70;
+      const y = O.y - 86;
+      ctx.beginPath();
+      ctx.roundRect(x, y, 230, 102, 12);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#e9f3ff';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(`Angle: ${fmt(metrics.angleDeg, 2)}°`, x + 12, y + 24);
+      ctx.fillText(`Target: ${fmt(p.targetAngleDeg, 1)}°`, x + 12, y + 44);
+      ctx.fillText(`Stability: ${fmt(metrics.stability, 1)}`, x + 12, y + 64);
+      ctx.fillText(`Torque: ${fmt(metrics.torque, 2)}`, x + 12, y + 84);
+      ctx.restore();
+    }
+
+
+    function updateReadouts(metrics, state) {
+      readouts.angle.textContent = `${fmt(metrics.angleDeg, 2)}°`;
+      readouts.angleError.textContent = `${fmt(metrics.angleError, 2)}°`;
+      readouts.bond.textContent = fmt(100 - clamp(metrics.bondError * 2.6 + metrics.bondBalance * 3.2, 0, 100), 1);
+      readouts.dipole.textContent = fmt(metrics.dipoleStrength, 2);
+      readouts.torque.textContent = fmt(metrics.torque, 2);
+      readouts.omega.textContent = fmt(metrics.angularVelocity, 3);
+      readouts.wobble.textContent = fmt(metrics.wobble, 2);
+      readouts.stability.textContent = fmt(metrics.stability, 1);
+      readouts.lockTimer.textContent = `${fmt(lockTimer, 1)} s`;
+      readouts.bestLock.textContent = `${fmt(bestLock, 1)} s`;
+      readouts.flap.textContent = `${fmt(metrics.resonanceResponse, 1)}%`;
+      readouts.fun.textContent = fmt(funScore + bestLock + Math.max(0, 100 - metrics.angleError * 10) * 0.05, 1);
+      readouts.isotope.textContent = getIsotopeConfig().label;
+      readouts.massDynamics.textContent = `${fmt(getIsotopeConfig().mass, 2)}×`;
+
+      readouts.lockPill.textContent = metrics.locked ? 'Water Lock: building' : 'Water Lock: scanning';
+      readouts.lockPill.className = metrics.locked ? 'pill good' : 'pill warn';
+
+      const twistLevel = Math.abs(metrics.angularVelocity) + metrics.wobble * 0.05;
+      readouts.twistPill.textContent = twistLevel > 0.7 ? 'Twist: active' : twistLevel > 0.25 ? 'Twist: settling' : 'Twist: quiet';
+      readouts.twistPill.className = twistLevel > 0.7 ? 'pill gold' : 'pill warn';
+
+      readouts.fieldPill.textContent = state.mode;
+      readouts.fieldPill.className = `pill ${state.cls}`;
+
+      readouts.fieldMode.textContent = state.mode;
+      readouts.fieldMode.className = `mode ${state.cls}`;
+      readouts.fieldDesc.textContent = state.desc;
+      readouts.fieldSubline.textContent = `${getIsotopeConfig().label} | Angle ${fmt(metrics.angleDeg, 2)}° | Stability ${fmt(metrics.stability, 1)} | Lock ${fmt(lockTimer, 1)}s`;
+      updateMissionReadout(metrics, getParams());
+    }
+
+    function updateMissionReadout(metrics, p) {
+      let title = 'Molecular Geometry';
+      let score = metrics.stability;
+      let tips = ['Disturb the molecule, then let it settle.', 'Pause, adjust, Resume, then compare the response.'];
+      if (p.mission === 'blind') {
+        title = blindMode ? 'Blind Stabilization: Hidden Readouts' : 'Blind Stabilization: Reveal Ready';
+        score = metrics.stability * 0.72 + (100 - metrics.resonanceResponse) * 0.28;
+        tips = blindMode
+          ? ['Numbers are hidden. Stabilize by eye first.', 'Use Pause/Tune to adjust, then Run Test.', 'Press Reveal Measurements when ready.']
+          : ['Measurements revealed.', 'Compare what you saw with the real angle, wobble, and resonance.', 'Try a different isotope and repeat.'];
+      } else if (p.mission === 'drop') {
+        title = 'Surface / Droplet Response';
+        score = metrics.dropRoundness * 0.45 + metrics.stability * 0.30 + (100 - metrics.resonanceResponse) * 0.25;
+        tips = ['Raise field cohesion to pull the surface inward.', 'Lower temperature to calm ripples.', 'Rounder, calmer fields represent lower surface-area behavior.'];
+      } else if (p.mission === 'heavy') {
+        title = 'Isotopic Resonance Lab';
+        score = (100 - metrics.resonanceResponse) * 0.42 + metrics.stability * 0.38 + (p.isotopeConfig.mass - 1) * 10;
+        tips = [`Current isotope: ${p.isotopeConfig.name}.`, 'H₂O is lively, D₂O is steadier, T₂O is queen-like: slow and governing.', 'Same structure target, different mass response.'];
+      }
+      score = clamp(score, 0, 100);
+      readouts.missionTitle.textContent = title;
+      readouts.missionScore.textContent = `${fmt(score, 0)}%`;
+      readouts.missionProgress.style.width = `${score}%`;
+      readouts.missionTips.innerHTML = tips.map(t => `<li>${t}</li>`).join('');
+    }
+
+    function animate() {
+      const p = getParams();
+      rescueIfLost();
+      sandboxMoleculeBounds();
+      if (!paused) step();
+      const metrics = computeMetrics();
+      const state = classify(metrics);
+
+      drawBackground(p);
+      drawField(metrics, p);
+      drawResonanceField(metrics, p);
+      drawSwarm(metrics, p);
+      drawWingTrails(p);
+      drawTetrahedralGhost(metrics, p);
+      drawDipole(metrics, p);
+      drawTwistRing(metrics);
+      drawNodes(metrics, p);
+      updateReadouts(metrics, state);
+      requestAnimationFrame(animate);
+    }
+
+    Object.values(controls).forEach(el => {
+      if (!el || el.tagName === 'BUTTON') return;
+      el.addEventListener('input', updateLabels);
+      el.addEventListener('change', () => {
+        updateLabels();
+        if (el.id === 'missionMode') applyMissionPreset();
+        if (el.id === 'isotopeMode') applyIsotopePreset();
+        if (['oxygenMass', 'hydrogenMass', 'bondLength', 'targetAngle', 'swarmCount', 'beeMode'].includes(el.id)) resetLab();
+      });
+    });
+
+    function applyIsotopePreset() {
+      const iso = getIsotopeConfig();
+      controls.hydrogenMass.value = String(iso.mass);
+
+      // Make the isotope comparison visually and numerically obvious:
+      // same geometry target, different mass response.
+      if (controls.isotopeMode.value === 'H') {
+        controls.temperature.value = '0.42';
+        controls.thermal.value = '0.026';
+        controls.damping.value = '0.974';
+        controls.bondStrength.value = '0.084';
+      } else if (controls.isotopeMode.value === 'D') {
+        controls.temperature.value = '0.25';
+        controls.thermal.value = '0.014';
+        controls.damping.value = '0.988';
+        controls.bondStrength.value = '0.096';
+      } else {
+        controls.temperature.value = '0.14';
+        controls.thermal.value = '0.007';
+        controls.damping.value = '0.994';
+        controls.bondStrength.value = '0.108';
+      }
+      updateLabels();
+      resetLab();
+    }
+
+    function applyMissionPreset() {
+      const mode = controls.missionMode.value;
+      if (mode === 'drop') {
+        controls.cohesion.value = '0.78';
+        controls.temperature.value = '0.30';
+        controls.swarmCount.value = Math.max(24, parseInt(controls.swarmCount.value, 10));
+      } else if (mode === 'heavy') {
+        if (controls.isotopeMode.value === 'H') controls.isotopeMode.value = 'D';
+        applyIsotopePreset();
+        controls.cohesion.value = '0.60';
+      } else if (mode === 'blind') {
+        blindMode = true;
+        document.body.classList.add('blind-mode');
+        controls.blindBtn.textContent = 'Reveal Measurements';
+        controls.temperature.value = '0.40';
+        controls.cohesion.value = '0.58';
+        controls.swarmCount.value = '18';
+        paused = true;
+        controls.pauseBtn.textContent = 'Run Test';
+      } else {
+        controls.temperature.value = '0.38';
+        controls.cohesion.value = '0.58';
+      }
+      updateLabels();
+      resetLab();
+      if (mode === 'blind') {
+        // Start as a paused challenge board: visibly imperfect, ready for students to tune.
+        const O = nodes[0];
+        nodes[1].x += 28; nodes[1].y -= 16;
+        nodes[2].x -= 22; nodes[2].y += 20;
+        nodes.forEach(n => { n.vx = 0; n.vy = 0; });
+      }
+    }
+
+    controls.resetBtn.addEventListener('click', () => {
+      paused = false;
+      controls.pauseBtn.textContent = 'Pause / Tune';
+      resetLab();
+    });
+    controls.pauseBtn.addEventListener('click', () => {
+      paused = !paused;
+      controls.pauseBtn.textContent = paused ? 'Run Test' : 'Pause / Tune';
+    });
+    if (controls.perturbBtn) controls.perturbBtn.addEventListener('click', perturb);
+    controls.coolBtn.addEventListener('click', coolField);
+    controls.inspectBtn.addEventListener('click', () => {
+      inspectMode = !inspectMode;
+      controls.inspectBtn.textContent = inspectMode ? 'Hide Inspect' : 'Inspect Lock';
+    });
+    if (controls.spinBtn) controls.spinBtn.addEventListener('click', spinTest);
+    if (controls.flightBtn) controls.flightBtn.addEventListener('click', () => { controls.missionMode.value = 'flight'; applyMissionPreset(); });
+    controls.beeToggleBtn.addEventListener('click', () => { controls.beeMode.value = controls.beeMode.value === 'on' ? 'off' : 'on'; updateLabels(); resetLab(); });
+    controls.blindBtn.addEventListener('click', () => {
+      if (controls.missionMode.value !== 'blind' || !blindMode) {
+        controls.missionMode.value = 'blind';
+        applyMissionPreset();
+        return;
+      }
+      blindMode = false;
+      document.body.classList.remove('blind-mode');
+      controls.blindBtn.textContent = 'Blind Challenge';
+      updateLabels();
+    });
+
+    canvas.addEventListener('pointerdown', e => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      let best = null;
+      let bestD = 999;
+      for (let i = 0; i < nodes.length; i++) {
+        const d = Math.hypot(nodes[i].x - x, nodes[i].y - y);
+        if (d < bestD && d < 42) { bestD = d; best = i; }
+      }
+      if (best !== null) {
+        draggingNode = best;
+        canvas.setPointerCapture(e.pointerId);
+        funScore += 1;
+      } else {
+        perturb();
+      }
+    });
+
+    canvas.addEventListener('pointermove', e => {
+      if (draggingNode === null) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const n = nodes[draggingNode];
+      n.vx += (x - n.x) * 0.18;
+      n.vy += (y - n.y) * 0.18;
+      n.x = x;
+      n.y = y;
+    });
+
+    canvas.addEventListener('pointerup', e => {
+      draggingNode = null;
+      try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+    });
+
+    window.addEventListener('keydown', e => {
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') { keys.up = true; e.preventDefault(); }
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { keys.left = true; e.preventDefault(); }
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { keys.right = true; e.preventDefault(); }
+      if (e.code === 'Space') { keys.stabilize = true; e.preventDefault(); }
+      if (e.key === 'r' || e.key === 'R') { resetLab(); }
+    });
+
+    window.addEventListener('keyup', e => {
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') keys.up = false;
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
+      if (e.code === 'Space') keys.stabilize = false;
+    });
+
+    updateLabels();
+    resetLab();
+    animate();
+  </script>
+<!-- v8 patched: removed hex lattice visuals, added resonance sandbox bounds, challenge starts paused for tune-then-test classroom flow. -->
+</body>
+</html>
